@@ -1,0 +1,692 @@
+basePath: /
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  hr.CreateEmployeeRequest:
+    properties:
+      businessUnitId:
+        type: string
+      departmentId:
+        type: string
+      displayName:
+        type: string
+      employeeNo:
+        type: string
+      firstName:
+        type: string
+      jobTitleId:
+        type: string
+      lastName:
+        type: string
+      managerId:
+        type: string
+      workEmail:
+        type: string
+    required:
+    - employeeNo
+    - firstName
+    - lastName
+    type: object
+  hr.OnboardRequest:
+    properties:
+      businessUnitId:
+        type: string
+      departmentId:
+        type: string
+      displayName:
+        type: string
+      employeeNo:
+        type: string
+      firstName:
+        type: string
+      initialRoleId:
+        type: string
+      jobTitleId:
+        type: string
+      lastName:
+        type: string
+      managerId:
+        type: string
+      password:
+        description: User / Auth Info
+        minLength: 8
+        type: string
+      workEmail:
+        type: string
+    required:
+    - employeeNo
+    - firstName
+    - initialRoleId
+    - lastName
+    - password
+    - workEmail
+    type: object
+  iam.AssignRoleRequest:
+    properties:
+      roleId:
+        type: string
+    required:
+    - roleId
+    type: object
+  iam.CreateUserRequest:
+    properties:
+      displayName:
+        type: string
+      email:
+        type: string
+      employeeId:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:8081
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Deep QMS backend application serving the core HR, IT, and specialized
+    logic domains.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: DML API
+  version: "1.0"
+paths:
+  /api/v1/audit-logs:
+    get:
+      description: Securely retrieves the compliance trail bounding global changes
+        happening across the system.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: pageSize
+        type: integer
+      - description: Filter by entity type (User, Employee, Role)
+        in: query
+        name: entityType
+        type: string
+      - description: Filter by action type (CREATE, UPDATE, DELETE)
+        in: query
+        name: action
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated log data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Audit Logs
+      tags:
+      - Audit
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user via email and password and returns a JWT token
+        for Authorization.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully authenticated
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login and get JWT token
+      tags:
+      - Authentication
+  /api/v1/business-units:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of business units for the authenticated
+        tenant.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Search term (name/code)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated business unit data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List business units
+      tags:
+      - Organization
+  /api/v1/business-units/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific business unit by its ID.
+      parameters:
+      - description: Business Unit ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Business unit data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a business unit
+      tags:
+      - Organization
+  /api/v1/departments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of departments for the authenticated
+        tenant.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Search term (name/code)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated department data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List departments
+      tags:
+      - Organization
+  /api/v1/departments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific department by its ID.
+      parameters:
+      - description: Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a department
+      tags:
+      - Organization
+  /api/v1/employees:
+    get:
+      description: Get a paginated list of employees.
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: pageSize
+        type: integer
+      - description: Search fuzzy match
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated Employee data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Employees
+      tags:
+      - Employees
+    post:
+      consumes:
+      - application/json
+      description: Adds a new employee to the human resources schema. Supports assigning
+        to Organizational Units (Business Unit, Department, Job Title) and a Manager
+        for tracking hierarchical reporting lines.
+      parameters:
+      - description: Employee Payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hr.CreateEmployeeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create an Employee
+      tags:
+      - Employees
+  /api/v1/employees/{id}:
+    get:
+      description: Fetch a single employee record.
+      parameters:
+      - description: Employee UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Employee by ID
+      tags:
+      - Employees
+  /api/v1/employees/{id}/hierarchy:
+    get:
+      description: Fetches an employee and a recursively mapped tree of their direct
+        and indirect reporting subordinates.
+      parameters:
+      - description: Employee UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get Employee Hierarchy
+      tags:
+      - Employees
+  /api/v1/job-titles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of job titles for the authenticated
+        tenant.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Search term (name/code)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated job title data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List job titles
+      tags:
+      - Organization
+  /api/v1/job-titles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get job title by ID
+      parameters:
+      - description: Job Title ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job title data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID format
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Job Title
+      tags:
+      - organization
+  /api/v1/onboard:
+    post:
+      consumes:
+      - application/json
+      description: Natively constructs the Employee profile, creates the Identity
+        provider User account securely, assigns the primary RBAC Role, and safely
+        tracks an Audit stream atomically using Postgres Transactions securely bound.
+      parameters:
+      - description: Comprehensive Onboarding Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hr.OnboardRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully completed sequence returning the active Identity
+            UUID map structure
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Onboard new Staff Member
+      tags:
+      - Onboarding
+  /api/v1/users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of users for the authenticated tenant.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Search term (email/name)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paginated user data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user profile attached to an employee reference.
+      parameters:
+      - description: User details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/iam.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created user
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden (Requires ADMIN)
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - Users
+  /api/v1/users/{userID}/roles:
+    post:
+      consumes:
+      - application/json
+      description: Binds an existing RBAC role to a specific user.
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Role Assignment specifics
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/iam.AssignRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Role assigned successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request payload
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden (Requires ADMIN)
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign role to user
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
