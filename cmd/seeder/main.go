@@ -148,123 +148,140 @@ func main() {
 	jobHseCoord, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "HSE-COORD", "Safety Coordinator", "GRADE-4")
 
 	// --- 6. Executive Layer Onboarding ---
-	ceoDisp := "Hemish Patel (CEO)"
-	ceo, err := onboardSvc.ExecuteOnboarding(
-		ctx, tenant1.ID, sysUserUUID, "UK-00001", "Hemish", "Patel", &ceoDisp, "hemish.patel@inova.krd", "Testing123!", adminRole.ID,
-		buLondon.ID, deptExe.ID, jobCEO.ID, parseUUID(""),
-	)
-	if err != nil {
-		log.Fatalf("FAILED CEO ONBOARDING: %v", err)
-	}
-
-	ctoDisp := "Emily T. (CTO)"
-	cto, _ := onboardSvc.ExecuteOnboarding(
-		ctx, tenant1.ID, sysUserUUID, "UK-00002", "Emily", "Taylor", &ctoDisp, "emily.taylor@inova.krd", "Testing123!", adminRole.ID,
-		buLondon.ID, deptExe.ID, jobCTO.ID, parseUUID(ceo.EmployeeID),
-	)
-
-	chroDisp := "David W. (CHRO)"
-	chro, _ := onboardSvc.ExecuteOnboarding(
-		ctx, tenant1.ID, sysUserUUID, "UK-00003", "David", "Williams", &chroDisp, "david.williams@inova.krd", "Testing123!", adminRole.ID,
-		buLondon.ID, deptExe.ID, jobCHRO.ID, parseUUID(ceo.EmployeeID),
-	)
-
-	// --- 7. Director Layer Onboarding ---
-	itDir, _ := onboardSvc.ExecuteOnboarding(
-		ctx, tenant1.ID, sysUserUUID, "UK-00004", "James", "Davies", nil, "james.davies@inova.krd", "Testing123!", adminRole.ID,
-		buMan.ID, deptIT.ID, jobITDir.ID, parseUUID(cto.EmployeeID),
-	)
-
-	finDir, _ := onboardSvc.ExecuteOnboarding(
-		ctx, tenant1.ID, sysUserUUID, "UK-00005", "Sarah", "Evans", nil, "sarah.evans@inova.krd", "Testing123!", mgrRole.ID,
-		buLondon.ID, deptFin.ID, jobFinDir.ID, parseUUID(ceo.EmployeeID),
-	)
-
-	// --- 8. Manager Layer ---
-	var hrManagers []string
-	for i := 1; i <= 3; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
-		mgr, _ := onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-H%03d", i), f, l, nil, email, "Testing123!", hrRole.ID,
-			buLondon.ID, deptHR.ID, jobHRMgr.ID, parseUUID(chro.EmployeeID),
-		)
-		hrManagers = append(hrManagers, mgr.EmployeeID)
-	}
-
-	var engManagers []string
-	for i := 1; i <= 4; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
-		mgr, _ := onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-E%03d", i), f, l, nil, email, "Testing123!", mgrRole.ID,
-			buEdin.ID, deptIT.ID, jobEngMgr.ID, parseUUID(itDir.EmployeeID),
-		)
-		engManagers = append(engManagers, mgr.EmployeeID)
-	}
-
-	var finManagers []string
-	for i := 1; i <= 2; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
-		mgr, _ := onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-F%03d", i), f, l, nil, email, "Testing123!", mgrRole.ID,
-			buLondon.ID, deptFin.ID, jobAcc.ID, parseUUID(finDir.EmployeeID),
-		)
-		finManagers = append(finManagers, mgr.EmployeeID)
-	}
-
-	// --- 9. Generating 105 Individual Contributors Programmatically ---
-	// Distribute ~60 to Engineering, ~20 to Finance, ~25 to HR
-	log.Println(">> Generating 105 Standard Employees and Binding to Hierarchy...")
+	var existingItDirID string
+	err = database.Pool.QueryRow(ctx, "SELECT id FROM employees WHERE employee_no = 'UK-00004' AND tenant_id = $1", tenant1.ID).Scan(&existingItDirID)
 
 	employeeCounter := 10
 
-	// ENGINEERING
-	for i := 0; i < 60; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
-
-		// Map IC to a random Engineering Manager natively
-		assignedMgr := engManagers[rand.Intn(len(engManagers))]
-		selectedJob := jobEng.ID
-		if rand.Float32() > 0.7 {
-			selectedJob = jobSrEng.ID
-		} // 30% Senior
-
-		onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
-			buEdin.ID, deptIT.ID, selectedJob, parseUUID(assignedMgr),
+	if err == nil && existingItDirID != "" {
+		log.Println(">> Base Executive and IC Layers already exist. Skipping sections 6-9...")
+		var count int
+		err = database.Pool.QueryRow(ctx, "SELECT count(*) FROM employees WHERE tenant_id = $1", tenant1.ID).Scan(&count)
+		if err == nil {
+			employeeCounter = count + 10
+		} else {
+			employeeCounter = 150
+		}
+	} else {
+		ceoDisp := "Hemish Patel (CEO)"
+		ceo, err := onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, "UK-00001", "Hemish", "Patel", &ceoDisp, "hemish.patel@inova.krd", "Testing123!", adminRole.ID,
+			buLondon.ID, deptExe.ID, jobCEO.ID, parseUUID(""),
 		)
-		employeeCounter++
-	}
+		if err != nil {
+			log.Fatalf("FAILED CEO ONBOARDING: %v", err)
+		}
 
-	// HR STAFF
-	for i := 0; i < 25; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
-
-		assignedMgr := hrManagers[rand.Intn(len(hrManagers))]
-
-		onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
-			buLondon.ID, deptHR.ID, jobHRBP.ID, parseUUID(assignedMgr),
+		ctoDisp := "Emily T. (CTO)"
+		cto, _ := onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, "UK-00002", "Emily", "Taylor", &ctoDisp, "emily.taylor@inova.krd", "Testing123!", adminRole.ID,
+			buLondon.ID, deptExe.ID, jobCTO.ID, parseUUID(ceo.EmployeeID),
 		)
-		employeeCounter++
-	}
 
-	// FINANCE STAFF
-	for i := 0; i < 20; i++ {
-		f, l := randomName()
-		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
-
-		assignedMgr := finManagers[rand.Intn(len(finManagers))]
-
-		onboardSvc.ExecuteOnboarding(
-			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
-			buMan.ID, deptFin.ID, jobAcc.ID, parseUUID(assignedMgr),
+		chroDisp := "David W. (CHRO)"
+		chro, _ := onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, "UK-00003", "David", "Williams", &chroDisp, "david.williams@inova.krd", "Testing123!", adminRole.ID,
+			buLondon.ID, deptExe.ID, jobCHRO.ID, parseUUID(ceo.EmployeeID),
 		)
-		employeeCounter++
+
+		// --- 7. Director Layer Onboarding ---
+		itDir, _ := onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, "UK-00004", "James", "Davies", nil, "james.davies@inova.krd", "Testing123!", adminRole.ID,
+			buMan.ID, deptIT.ID, jobITDir.ID, parseUUID(cto.EmployeeID),
+		)
+
+		finDir, _ := onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, "UK-00005", "Sarah", "Evans", nil, "sarah.evans@inova.krd", "Testing123!", mgrRole.ID,
+			buLondon.ID, deptFin.ID, jobFinDir.ID, parseUUID(ceo.EmployeeID),
+		)
+
+		// --- 8. Manager Layer ---
+		var hrManagers []string
+		for i := 1; i <= 3; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
+			mgr, _ := onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-H%03d", i), f, l, nil, email, "Testing123!", hrRole.ID,
+				buLondon.ID, deptHR.ID, jobHRMgr.ID, parseUUID(chro.EmployeeID),
+			)
+			hrManagers = append(hrManagers, mgr.EmployeeID)
+		}
+
+		var engManagers []string
+		for i := 1; i <= 4; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
+			mgr, _ := onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-E%03d", i), f, l, nil, email, "Testing123!", mgrRole.ID,
+				buEdin.ID, deptIT.ID, jobEngMgr.ID, parseUUID(itDir.EmployeeID),
+			)
+			engManagers = append(engManagers, mgr.EmployeeID)
+		}
+
+		var finManagers []string
+		for i := 1; i <= 2; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, i))
+			mgr, _ := onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-F%03d", i), f, l, nil, email, "Testing123!", mgrRole.ID,
+				buLondon.ID, deptFin.ID, jobAcc.ID, parseUUID(finDir.EmployeeID),
+			)
+			finManagers = append(finManagers, mgr.EmployeeID)
+		}
+
+		// --- 9. Generating 105 Individual Contributors Programmatically ---
+		// Distribute ~60 to Engineering, ~20 to Finance, ~25 to HR
+		log.Println(">> Generating 105 Standard Employees and Binding to Hierarchy...")
+
+		employeeCounter := 10
+
+		// ENGINEERING
+		for i := 0; i < 60; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+
+			// Map IC to a random Engineering Manager natively
+			assignedMgr := engManagers[rand.Intn(len(engManagers))]
+			selectedJob := jobEng.ID
+			if rand.Float32() > 0.7 {
+				selectedJob = jobSrEng.ID
+			} // 30% Senior
+
+			onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+				buEdin.ID, deptIT.ID, selectedJob, parseUUID(assignedMgr),
+			)
+			employeeCounter++
+		}
+
+		// HR STAFF
+		for i := 0; i < 25; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+
+			assignedMgr := hrManagers[rand.Intn(len(hrManagers))]
+
+			onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+				buLondon.ID, deptHR.ID, jobHRBP.ID, parseUUID(assignedMgr),
+			)
+			employeeCounter++
+		}
+
+		// FINANCE STAFF
+		for i := 0; i < 20; i++ {
+			f, l := randomName()
+			email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+
+			assignedMgr := finManagers[rand.Intn(len(finManagers))]
+
+			onboardSvc.ExecuteOnboarding(
+				ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+				buMan.ID, deptFin.ID, jobAcc.ID, parseUUID(assignedMgr),
+			)
+			employeeCounter++
+		}
+		existingItDirID = itDir.EmployeeID
 	}
 
 	// --- 10. New Functional Departments Layer ---
@@ -276,7 +293,7 @@ func main() {
 	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
 	mfgMgr, _ := onboardSvc.ExecuteOnboarding(
 		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
-		buMan.ID, deptMFG.ID, jobMfgMgr.ID, parseUUID(itDir.EmployeeID),
+		buMan.ID, deptMFG.ID, jobMfgMgr.ID, parseUUID(existingItDirID),
 	)
 	employeeCounter++
 
@@ -284,7 +301,7 @@ func main() {
 	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
 	mntSup, _ := onboardSvc.ExecuteOnboarding(
 		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
-		buMan.ID, deptMNT.ID, jobMntSup.ID, parseUUID(itDir.EmployeeID),
+		buMan.ID, deptMNT.ID, jobMntSup.ID, parseUUID(existingItDirID),
 	)
 	employeeCounter++
 
@@ -292,7 +309,7 @@ func main() {
 	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
 	qaMgr, _ := onboardSvc.ExecuteOnboarding(
 		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
-		buMan.ID, deptQA.ID, jobQaMgr.ID, parseUUID(itDir.EmployeeID),
+		buMan.ID, deptQA.ID, jobQaMgr.ID, parseUUID(existingItDirID),
 	)
 	employeeCounter++
 
@@ -300,7 +317,7 @@ func main() {
 	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
 	hseDir, _ := onboardSvc.ExecuteOnboarding(
 		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
-		buMan.ID, deptHSE.ID, jobHseDir.ID, parseUUID(itDir.EmployeeID),
+		buMan.ID, deptHSE.ID, jobHseDir.ID, parseUUID(existingItDirID),
 	)
 	employeeCounter++
 
