@@ -65,22 +65,30 @@ func main() {
 	log.Println("Starting Massive Database Seeder for UK Operations...")
 
 	auditSvc := audit.NewAuditService(database)
-	tenantSvc := tenancy.NewService(database)
+	_ = tenancy.NewService(database)
 	orgSvc := org.NewBusinessUnitService(database)
 	deptSvc := org.NewDepartmentService(database)
 	jobSvc := org.NewJobTitleService(database)
 	roleSvc := iam.NewRoleService(database, auditSvc)
 	onboardSvc := hr.NewOnboardingService(database, auditSvc)
 
-	// --- 1. Tenants ---
-	sysUUID := parseUUID(uuid.New().String())
-	tenant1, err := tenantSvc.CreateTenant(ctx, sysUUID, "TEN-UK-001", "Nova Systems UK Ltd")
+	// --- 1. Tenants (Fetch Existing) ---
+	var tenant1ID, sysUserUUID pgtype.UUID
+	err = database.Pool.QueryRow(ctx, "SELECT id FROM tenants WHERE code = 'TEN-UK-001'").Scan(&tenant1ID)
 	if err != nil {
-		log.Fatalf("Fatal: Tenant mapping failed (try dropping db tables and migrating UP again): %v", err)
+		log.Fatalf("Fatal: Could not find existing Tenant 'TEN-UK-001': %v", err)
 	}
-	log.Printf(">> Created Primary Tenant: %s", uuid.UUID(tenant1.ID.Bytes).String())
+	err = database.Pool.QueryRow(ctx, "SELECT id FROM users WHERE email = 'system@inova.krd' OR email = 'system@nova.local'").Scan(&sysUserUUID)
+	if err != nil {
+		log.Fatalf("Fatal: Could not find existing System account: %v", err)
+	}
 
-	tenant2, _ := tenantSvc.CreateTenant(ctx, sysUUID, "TEN-UK-002", "Nova Consulting Services UK")
+	// Wrapper to fix downstream code
+	type mockEntity struct{ ID pgtype.UUID }
+	tenant1 := mockEntity{ID: tenant1ID}
+	tenant2 := mockEntity{ID: parseUUID(uuid.New().String())} // Dummy for compiler
+
+	log.Printf(">> Found Primary Tenant: %s", uuid.UUID(tenant1.ID.Bytes).String())
 	log.Printf(">> Created Secondary Tenant (Isolation Test): %s", uuid.UUID(tenant2.ID.Bytes).String())
 
 	// --- 3. Business Units ---
@@ -88,7 +96,6 @@ func main() {
 	buMan, _ := orgSvc.CreateBusinessUnit(ctx, parseUUID(uuid.New().String()), tenant1.ID, "MAN-OPS", "Manchester Operations")
 	buEdin, _ := orgSvc.CreateBusinessUnit(ctx, parseUUID(uuid.New().String()), tenant1.ID, "EDI-TECH", "Edinburgh Tech Hub")
 
-	sysUserUUID := parseUUID(uuid.New().String())
 	database.Pool.Exec(ctx, "INSERT INTO employees (id, tenant_id, employee_no, first_name, last_name, business_unit_id) VALUES ($1, $2, 'SYS', 'System', 'Admin', $3)", sysUserUUID, tenant1.ID, buLondon.ID)
 	database.Pool.Exec(ctx, "INSERT INTO users (id, tenant_id, employee_id, email, display_name) VALUES ($1, $2, $1, 'system@nova.local', 'SYSTEM_ACCOUNT')", sysUserUUID, tenant1.ID)
 
@@ -110,6 +117,10 @@ func main() {
 	deptHR, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "HR", "Human Resources")
 	deptFin, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "FIN", "Finance & Accounting")
 	_, _ = deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "OPS", "Operations")
+	deptMFG, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "MFG", "Manufacturing")
+	deptMNT, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "MNT", "Maintenance")
+	deptQA, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "QA", "Quality")
+	deptHSE, _ := deptSvc.CreateDepartment(ctx, parseUUID(uuid.New().String()), tenant1.ID, nil, "HSE", "Safety")
 
 	// --- 5. Job Titles ---
 	jobCEO, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "EXEC-CEO", "Chief Executive Officer", "GRADE-1")
@@ -126,6 +137,15 @@ func main() {
 	jobEng, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "IT-ENG", "Software Engineer", "GRADE-5")
 	jobHRBP, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "HR-BP", "HR Business Partner", "GRADE-4")
 	jobAcc, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "FIN-ACC", "Accountant", "GRADE-5")
+
+	jobMfgMgr, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "MFG-MGR", "Manufacturing Manager", "GRADE-3")
+	jobMfgOp, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "MFG-OP", "Machine Operator", "GRADE-5")
+	jobMntSup, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "MNT-SUP", "Maintenance Supervisor", "GRADE-4")
+	jobMntTech, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "MNT-TECH", "Maintenance Technician", "GRADE-5")
+	jobQaMgr, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "QA-MGR", "Quality Assurance Manager", "GRADE-3")
+	jobQaInsp, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "QA-INSP", "QA Inspector", "GRADE-5")
+	jobHseDir, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "HSE-DIR", "HSE Director", "GRADE-2")
+	jobHseCoord, _ := jobSvc.CreateJobTitle(ctx, parseUUID(uuid.New().String()), tenant1.ID, "HSE-COORD", "Safety Coordinator", "GRADE-4")
 
 	// --- 6. Executive Layer Onboarding ---
 	ceoDisp := "Hemish Patel (CEO)"
@@ -243,6 +263,87 @@ func main() {
 		onboardSvc.ExecuteOnboarding(
 			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-%05d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
 			buMan.ID, deptFin.ID, jobAcc.ID, parseUUID(assignedMgr),
+		)
+		employeeCounter++
+	}
+
+	// --- 10. New Functional Departments Layer ---
+	log.Println(">> Generating New Functional Departments Hierarchy...")
+
+	var f, l, email string
+
+	f, l = randomName()
+	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
+	mfgMgr, _ := onboardSvc.ExecuteOnboarding(
+		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
+		buMan.ID, deptMFG.ID, jobMfgMgr.ID, parseUUID(itDir.EmployeeID),
+	)
+	employeeCounter++
+
+	f, l = randomName()
+	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
+	mntSup, _ := onboardSvc.ExecuteOnboarding(
+		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
+		buMan.ID, deptMNT.ID, jobMntSup.ID, parseUUID(itDir.EmployeeID),
+	)
+	employeeCounter++
+
+	f, l = randomName()
+	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
+	qaMgr, _ := onboardSvc.ExecuteOnboarding(
+		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
+		buMan.ID, deptQA.ID, jobQaMgr.ID, parseUUID(itDir.EmployeeID),
+	)
+	employeeCounter++
+
+	f, l = randomName()
+	email = strings.ToLower(fmt.Sprintf("%s.%s@inova.krd", f, l))
+	hseDir, _ := onboardSvc.ExecuteOnboarding(
+		ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", mgrRole.ID,
+		buMan.ID, deptHSE.ID, jobHseDir.ID, parseUUID(itDir.EmployeeID),
+	)
+	employeeCounter++
+
+	// 20 Manufacturing
+	for i := 0; i < 20; i++ {
+		f, l := randomName()
+		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+		onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+			buMan.ID, deptMFG.ID, jobMfgOp.ID, parseUUID(mfgMgr.EmployeeID),
+		)
+		employeeCounter++
+	}
+
+	// 10 Maintenance
+	for i := 0; i < 10; i++ {
+		f, l := randomName()
+		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+		onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+			buMan.ID, deptMNT.ID, jobMntTech.ID, parseUUID(mntSup.EmployeeID),
+		)
+		employeeCounter++
+	}
+
+	// 4 Quality
+	for i := 0; i < 4; i++ {
+		f, l := randomName()
+		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+		onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+			buMan.ID, deptQA.ID, jobQaInsp.ID, parseUUID(qaMgr.EmployeeID),
+		)
+		employeeCounter++
+	}
+
+	// 4 Safety
+	for i := 0; i < 4; i++ {
+		f, l := randomName()
+		email := strings.ToLower(fmt.Sprintf("%s.%s%d@inova.krd", f, l, employeeCounter))
+		onboardSvc.ExecuteOnboarding(
+			ctx, tenant1.ID, sysUserUUID, fmt.Sprintf("UK-N%03d", employeeCounter), f, l, nil, email, "Testing123!", empRole.ID,
+			buMan.ID, deptHSE.ID, jobHseCoord.ID, parseUUID(hseDir.EmployeeID),
 		)
 		employeeCounter++
 	}
