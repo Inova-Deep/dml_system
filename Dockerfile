@@ -13,9 +13,9 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
-# Build a statically linked binary
+# Build statically linked binaries
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o main ./cmd/server
-
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o seeder ./cmd/seeder
 # Final stage
 FROM alpine:3.19
 
@@ -27,6 +27,7 @@ USER appuser
 
 # Copy the pre-built binary file from the previous stage
 COPY --from=builder /app/main .
+COPY --from=builder /app/seeder .
 
 EXPOSE 8081
 
