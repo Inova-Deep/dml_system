@@ -84,7 +84,7 @@ func (h *EmployeeHandler) HandleGetHierarchy(w http.ResponseWriter, r *http.Requ
 }
 
 // @Summary List Employees
-// @Description Get a paginated list of employees.
+// @Description Get a paginated list of employees with business unit, department, job title, and manager details.
 // @Tags Employees
 // @Produce json
 // @Security BearerAuth
@@ -102,7 +102,7 @@ func (h *EmployeeHandler) HandleList(w http.ResponseWriter, r *http.Request) {
 
 	params := query.ParsePagination(r)
 
-	emps, total, err := h.service.ListEmployees(r.Context(), tenantID, params)
+	emps, total, err := h.service.ListEmployeesWithDetails(r.Context(), tenantID, params)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "Failed to list employees")
 		return
@@ -111,7 +111,7 @@ func (h *EmployeeHandler) HandleList(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary Get Employee by ID
-// @Description Fetch a single employee record.
+// @Description Fetch a single employee record with business unit, department, job title, and manager details.
 // @Tags Employees
 // @Produce json
 // @Security BearerAuth
@@ -132,7 +132,7 @@ func (h *EmployeeHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emp, err := h.service.GetEmployee(r.Context(), tenantID, empID)
+	emp, err := h.service.GetEmployeeWithDetails(r.Context(), tenantID, empID)
 	if err != nil {
 		response.Error(w, http.StatusNotFound, "Employee not found")
 		return

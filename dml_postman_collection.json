@@ -58,102 +58,156 @@
 			"name": "02. Organization Structure",
 			"item": [
 				{
-					"name": "1. GET List Business Units",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/business-units?page=1&pageSize=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": ["api", "v1", "business-units"],
-							"query": [
-								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "10"}
-							]
-						}
-					}
-				},
-				{
-					"name": "2. POST Create Business Unit",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"code\": \"BU-500\",\n  \"name\": \"Innovation Lab\"\n}"
+					"name": "Business Units",
+					"item": [
+						{
+							"name": "1. GET List Business Units",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/business-units?page=1&pageSize=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": ["api", "v1", "business-units"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "pageSize", "value": "10"},
+										{"key": "search", "value": "", "disabled": true}
+									]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/business-units",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "business-units"]
-						}
-					}
-				},
-				{
-					"name": "3. GET List Departments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/departments?page=1&pageSize=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "departments"],
-							"query": [
-								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "10"}
-							]
-						}
-					}
-				},
-				{
-					"name": "4. POST Create Department",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"code\": \"DEP-501\",\n  \"name\": \"Machine Learning Research\",\n  \"parentDepartmentId\": null\n}"
+						{
+							"name": "2. GET Business Unit by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/business-units/{{business_unit_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "business-units", "{{business_unit_id}}"]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/departments",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "departments"]
+						{
+							"name": "3. POST Create Business Unit",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"BU-500\",\n  \"name\": \"Innovation Lab\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/business-units",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "business-units"]
+								}
+							}
 						}
-					}
+					]
 				},
 				{
-					"name": "5. GET List Job Titles",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/job-titles?page=1&pageSize=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "job-titles"],
-							"query": [
-								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "10"}
-							]
-						}
-					}
-				},
-				{
-					"name": "6. POST Create Job Title",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"code\": \"AI-RS2\",\n  \"name\": \"Senior AI Researcher\",\n  \"grade\": \"GR-7\"\n}"
+					"name": "Departments",
+					"item": [
+						{
+							"name": "1. GET List Departments",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/departments?page=1&pageSize=10",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "departments"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "pageSize", "value": "10"},
+										{"key": "search", "value": "", "disabled": true}
+									]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/job-titles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "job-titles"]
+						{
+							"name": "2. GET Department by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/departments/{{department_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "departments", "{{department_id}}"]
+								}
+							}
+						},
+						{
+							"name": "3. POST Create Department",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"DEP-501\",\n  \"name\": \"Machine Learning Research\",\n  \"parentDepartmentId\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/departments",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "departments"]
+								}
+							}
 						}
-					}
+					]
+				},
+				{
+					"name": "Job Titles",
+					"item": [
+						{
+							"name": "1. GET List Job Titles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/job-titles?page=1&pageSize=10",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "job-titles"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "pageSize", "value": "10"},
+										{"key": "search", "value": "", "disabled": true}
+									]
+								}
+							}
+						},
+						{
+							"name": "2. GET Job Title by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/job-titles/{{job_title_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "job-titles", "{{job_title_id}}"]
+								}
+							}
+						},
+						{
+							"name": "3. POST Create Job Title",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"AI-RS2\",\n  \"name\": \"Senior AI Researcher\",\n  \"grade\": \"GR-7\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/job-titles",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "job-titles"]
+								}
+							}
+						}
+					]
 				}
 			]
 		},
@@ -161,79 +215,103 @@
 			"name": "03. Human Resources",
 			"item": [
 				{
-					"name": "1. GET List Employees",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/employees?page=1&pageSize=20",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "employees"],
-							"query": [
-								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "20"}
-							]
-						}
-					}
-				},
-				{
-					"name": "2. GET Search Employees (By Name)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/employees?q=Patel",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "employees"],
-							"query": [
-								{"key": "q", "value": "Patel"}
-							]
-						}
-					}
-				},
-				{
-					"name": "3. GET Get Employee Hierarchy",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/employees/{{employee_id}}/hierarchy",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "employees", "{{employee_id}}", "hierarchy"]
-						}
-					}
-				},
-				{
-					"name": "4. POST Create Employee Manually",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"employeeNo\": \"UK-XXXX\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Employee\",\n  \"displayName\": \"New Employee\",\n  \"workEmail\": \"new.employee@inova.krd\",\n  \"businessUnitId\": null,\n  \"departmentId\": null,\n  \"jobTitleId\": null,\n  \"managerId\": null\n}"
+					"name": "Employees",
+					"item": [
+						{
+							"name": "1. GET List Employees",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/employees?page=1&pageSize=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "employees"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "pageSize", "value": "20"},
+										{"key": "search", "value": "", "disabled": true}
+									]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/employees",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "employees"]
+						{
+							"name": "2. GET Search Employees",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/employees?search=Patel",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "employees"],
+									"query": [
+										{"key": "search", "value": "Patel"}
+									]
+								}
+							}
+						},
+						{
+							"name": "3. GET Employee by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/employees/{{employee_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "employees", "{{employee_id}}"]
+								}
+							}
+						},
+						{
+							"name": "4. GET Employee Hierarchy",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/employees/{{employee_id}}/hierarchy",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "employees", "{{employee_id}}", "hierarchy"]
+								}
+							}
+						},
+						{
+							"name": "5. POST Create Employee",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employeeNo\": \"UK-XXXX\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Employee\",\n  \"displayName\": \"New Employee\",\n  \"workEmail\": \"new.employee@inova.krd\",\n  \"businessUnitId\": null,\n  \"departmentId\": null,\n  \"jobTitleId\": null,\n  \"managerId\": null\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/employees",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "employees"]
+								}
+							}
 						}
-					}
+					]
 				},
 				{
-					"name": "5. POST Automated Staff Onboarding",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"first_name\": \"James\",\n  \"last_name\": \"Holden\",\n  \"work_email\": \"james.holden@inova.krd\",\n  \"business_unit_id\": \"<INSERT_BU_UUID>\",\n  \"department_id\": \"<INSERT_DEPT_UUID>\",\n  \"job_title_id\": \"<INSERT_TITLE_UUID>\",\n  \"manager_id\": null,\n  \"temp_password\": \"Temp123!\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/onboard",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "onboard"]
+					"name": "Onboarding",
+					"item": [
+						{
+							"name": "1. POST Automated Staff Onboarding",
+							"description": "Requires ADMIN role. Atomically creates Employee + User + Role Assignment.",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employeeNo\": \"UK-1001\",\n  \"firstName\": \"James\",\n  \"lastName\": \"Holden\",\n  \"displayName\": \"James Holden\",\n  \"workEmail\": \"james.holden@inova.krd\",\n  \"businessUnitId\": \"<INSERT_BU_UUID>\",\n  \"departmentId\": \"<INSERT_DEPT_UUID>\",\n  \"jobTitleId\": \"<INSERT_TITLE_UUID>\",\n  \"managerId\": null,\n  \"password\": \"TempPassword123!\",\n  \"initialRoleId\": \"<INSERT_ROLE_UUID>\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/onboard",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "onboard"]
+								}
+							}
 						}
-					}
+					]
 				}
 			]
 		},
@@ -241,104 +319,146 @@
 			"name": "04. Identity & Access (IAM)",
 			"item": [
 				{
-					"name": "1. GET List Users",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users?page=1&pageSize=20",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users"],
-							"query": [
-								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "20"}
-							]
-						}
-					}
-				},
-				{
-					"name": "2. POST Create User Systematically",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"employeeId\": \"<OPTIONAL_EMPLOYEE_UUID>\",\n  \"email\": \"sys.admin@inova.krd\",\n  \"displayName\": \"System Administrator\",\n  \"password\": \"SecureString123!\"\n}"
+					"name": "Users",
+					"item": [
+						{
+							"name": "1. GET List Users",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users?page=1&pageSize=20",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users"],
+									"query": [
+										{"key": "page", "value": "1"},
+										{"key": "pageSize", "value": "20"},
+										{"key": "search", "value": "", "disabled": true}
+									]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users"]
-						}
-					}
-				},
-				{
-					"name": "3. GET Get Single User",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users/{{user_id}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users", "{{user_id}}"]
-						}
-					}
-				},
-				{
-					"name": "4. GET List System Roles",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/roles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "roles"]
-						}
-					}
-				},
-				{
-					"name": "5. POST Create System Role",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"code\": \"CONTENT_VIEWER\",\n  \"name\": \"Content Viewer\",\n  \"description\": \"Has read-only access to standard application content.\"\n}"
+						{
+							"name": "2. GET User by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/{{user_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users", "{{user_id}}"]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/roles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "roles"]
-						}
-					}
-				},
-				{
-					"name": "6. POST Assign Role to User",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"roleId\": \"<INSERT_ROLE_UUID>\"\n}"
+						{
+							"name": "3. GET User by Email",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/by-email?email=hemish.patel@inova.krd",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users", "by-email"],
+									"query": [
+										{"key": "email", "value": "hemish.patel@inova.krd"}
+									]
+								}
+							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users/{{user_id}}/roles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users", "{{user_id}}", "roles"]
+						{
+							"name": "4. POST Create User",
+							"description": "Requires ADMIN role.",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employeeId\": \"<INSERT_EMPLOYEE_UUID>\",\n  \"email\": \"sys.admin@inova.krd\",\n  \"displayName\": \"System Administrator\",\n  \"password\": \"SecureString123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users"]
+								}
+							}
+						},
+						{
+							"name": "5. POST Assign Role to User",
+							"description": "Requires ADMIN role.",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"roleId\": \"<INSERT_ROLE_UUID>\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/{{user_id}}/roles",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users", "{{user_id}}", "roles"]
+								}
+							}
+						},
+						{
+							"name": "6. DELETE Revoke Role from User",
+							"description": "Requires ADMIN role.",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/{{user_id}}/roles/{{role_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "users", "{{user_id}}", "roles", "{{role_id}}"]
+								}
+							}
 						}
-					}
+					]
 				},
 				{
-					"name": "7. DELETE Revoke Role from User",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users/{{user_id}}/roles/{{role_id}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users", "{{user_id}}", "roles", "{{role_id}}"]
+					"name": "Roles",
+					"item": [
+						{
+							"name": "1. GET List Roles",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/roles",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "roles"]
+								}
+							}
+						},
+						{
+							"name": "2. GET Role by ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/roles/{{role_id}}",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "roles", "{{role_id}}"]
+								}
+							}
+						},
+						{
+							"name": "3. POST Create Role",
+							"description": "Requires ADMIN role.",
+							"request": {
+								"method": "POST",
+								"header": [{"key": "Content-Type", "value": "application/json"}],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"code\": \"CONTENT_VIEWER\",\n  \"name\": \"Content Viewer\",\n  \"description\": \"Has read-only access to standard application content.\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/roles",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "roles"]
+								}
+							}
 						}
-					}
+					]
 				}
 			]
 		},
@@ -346,17 +466,20 @@
 			"name": "05. Audit Logs",
 			"item": [
 				{
-					"name": "1. GET Retrieve Global Audit Trail",
+					"name": "1. GET Audit Trail",
+					"description": "Requires ADMIN role. Supports filtering by entityType and action.",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/audit-logs?page=1&pageSize=50",
+							"raw": "{{baseUrl}}/api/v1/audit-logs?page=1&pageSize=50&entityType=&action=",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "audit-logs"],
 							"query": [
 								{"key": "page", "value": "1"},
-								{"key": "pageSize", "value": "50"}
+								{"key": "pageSize", "value": "50"},
+								{"key": "entityType", "value": "", "description": "Filter by entity type (User, Employee, Role, BusinessUnit, Department, JobTitle)"},
+								{"key": "action", "value": "", "description": "Filter by action (CREATE, UPDATE, DELETE)"}
 							]
 						}
 					}
@@ -383,6 +506,9 @@
 		{"key": "token", "value": "", "type": "string"},
 		{"key": "user_id", "value": "<UUID>", "type": "string"},
 		{"key": "employee_id", "value": "<UUID>", "type": "string"},
-		{"key": "role_id", "value": "<UUID>", "type": "string"}
+		{"key": "role_id", "value": "<UUID>", "type": "string"},
+		{"key": "business_unit_id", "value": "<UUID>", "type": "string"},
+		{"key": "department_id", "value": "<UUID>", "type": "string"},
+		{"key": "job_title_id", "value": "<UUID>", "type": "string"}
 	]
 }

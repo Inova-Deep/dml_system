@@ -63,6 +63,41 @@ RETURNING
 -- name: GetEmployee :one
 SELECT * FROM employees WHERE tenant_id = $1 AND id = $2 LIMIT 1;
 
+-- name: GetEmployeeWithDetails :one
+SELECT
+    e.id,
+    e.tenant_id,
+    e.employee_no,
+    e.first_name,
+    e.last_name,
+    e.display_name,
+    e.work_email,
+    e.status,
+    e.is_active,
+    e.created_at,
+    e.updated_at,
+    e.business_unit_id,
+    e.department_id,
+    e.job_title_id,
+    e.manager_id,
+    bu.code AS business_unit_code,
+    bu.name AS business_unit_name,
+    d.code AS department_code,
+    d.name AS department_name,
+    jt.code AS job_title_code,
+    jt.name AS job_title_name,
+    jt.grade AS job_title_grade,
+    m.employee_no AS manager_employee_no,
+    m.first_name AS manager_first_name,
+    m.last_name AS manager_last_name,
+    m.display_name AS manager_display_name
+FROM employees e
+LEFT JOIN business_units bu ON e.business_unit_id = bu.id AND e.tenant_id = bu.tenant_id
+LEFT JOIN departments d ON e.department_id = d.id AND e.tenant_id = d.tenant_id
+LEFT JOIN job_titles jt ON e.job_title_id = jt.id AND e.tenant_id = jt.tenant_id
+LEFT JOIN employees m ON e.manager_id = m.id AND e.tenant_id = m.tenant_id
+WHERE e.tenant_id = $1 AND e.id = $2 LIMIT 1;
+
 -- name: ListEmployees :many
 SELECT *
 FROM employees
@@ -76,6 +111,53 @@ WHERE
         OR work_email ILIKE '%' || sqlc.arg ('search')::text || '%'
     )
 ORDER BY last_name, first_name
+LIMIT sqlc.arg ('limit')
+OFFSET
+    sqlc.arg ('offset');
+
+-- name: ListEmployeesWithDetails :many
+SELECT
+    e.id,
+    e.tenant_id,
+    e.employee_no,
+    e.first_name,
+    e.last_name,
+    e.display_name,
+    e.work_email,
+    e.status,
+    e.is_active,
+    e.created_at,
+    e.updated_at,
+    e.business_unit_id,
+    e.department_id,
+    e.job_title_id,
+    e.manager_id,
+    bu.code AS business_unit_code,
+    bu.name AS business_unit_name,
+    d.code AS department_code,
+    d.name AS department_name,
+    jt.code AS job_title_code,
+    jt.name AS job_title_name,
+    jt.grade AS job_title_grade,
+    m.employee_no AS manager_employee_no,
+    m.first_name AS manager_first_name,
+    m.last_name AS manager_last_name,
+    m.display_name AS manager_display_name
+FROM employees e
+LEFT JOIN business_units bu ON e.business_unit_id = bu.id AND e.tenant_id = bu.tenant_id
+LEFT JOIN departments d ON e.department_id = d.id AND e.tenant_id = d.tenant_id
+LEFT JOIN job_titles jt ON e.job_title_id = jt.id AND e.tenant_id = jt.tenant_id
+LEFT JOIN employees m ON e.manager_id = m.id AND e.tenant_id = m.tenant_id
+WHERE
+    e.tenant_id = $1
+    AND (
+        sqlc.arg ('search')::text = ''
+        OR e.first_name ILIKE '%' || sqlc.arg ('search')::text || '%'
+        OR e.last_name ILIKE '%' || sqlc.arg ('search')::text || '%'
+        OR e.display_name ILIKE '%' || sqlc.arg ('search')::text || '%'
+        OR e.work_email ILIKE '%' || sqlc.arg ('search')::text || '%'
+    )
+ORDER BY e.last_name, e.first_name
 LIMIT sqlc.arg ('limit')
 OFFSET
     sqlc.arg ('offset');

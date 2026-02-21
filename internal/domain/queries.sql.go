@@ -690,6 +690,110 @@ func (q *Queries) GetEmployeeHierarchy(ctx context.Context, arg GetEmployeeHiera
 	return items, nil
 }
 
+const getEmployeeWithDetails = `-- name: GetEmployeeWithDetails :one
+SELECT
+    e.id,
+    e.tenant_id,
+    e.employee_no,
+    e.first_name,
+    e.last_name,
+    e.display_name,
+    e.work_email,
+    e.status,
+    e.is_active,
+    e.created_at,
+    e.updated_at,
+    e.business_unit_id,
+    e.department_id,
+    e.job_title_id,
+    e.manager_id,
+    bu.code AS business_unit_code,
+    bu.name AS business_unit_name,
+    d.code AS department_code,
+    d.name AS department_name,
+    jt.code AS job_title_code,
+    jt.name AS job_title_name,
+    jt.grade AS job_title_grade,
+    m.employee_no AS manager_employee_no,
+    m.first_name AS manager_first_name,
+    m.last_name AS manager_last_name,
+    m.display_name AS manager_display_name
+FROM employees e
+LEFT JOIN business_units bu ON e.business_unit_id = bu.id AND e.tenant_id = bu.tenant_id
+LEFT JOIN departments d ON e.department_id = d.id AND e.tenant_id = d.tenant_id
+LEFT JOIN job_titles jt ON e.job_title_id = jt.id AND e.tenant_id = jt.tenant_id
+LEFT JOIN employees m ON e.manager_id = m.id AND e.tenant_id = m.tenant_id
+WHERE e.tenant_id = $1 AND e.id = $2 LIMIT 1
+`
+
+type GetEmployeeWithDetailsParams struct {
+	TenantID pgtype.UUID `json:"tenant_id"`
+	ID       pgtype.UUID `json:"id"`
+}
+
+type GetEmployeeWithDetailsRow struct {
+	ID                 pgtype.UUID        `json:"id"`
+	TenantID           pgtype.UUID        `json:"tenant_id"`
+	EmployeeNo         string             `json:"employee_no"`
+	FirstName          string             `json:"first_name"`
+	LastName           string             `json:"last_name"`
+	DisplayName        pgtype.Text        `json:"display_name"`
+	WorkEmail          pgtype.Text        `json:"work_email"`
+	Status             string             `json:"status"`
+	IsActive           bool               `json:"is_active"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	BusinessUnitID     pgtype.UUID        `json:"business_unit_id"`
+	DepartmentID       pgtype.UUID        `json:"department_id"`
+	JobTitleID         pgtype.UUID        `json:"job_title_id"`
+	ManagerID          pgtype.UUID        `json:"manager_id"`
+	BusinessUnitCode   pgtype.Text        `json:"business_unit_code"`
+	BusinessUnitName   pgtype.Text        `json:"business_unit_name"`
+	DepartmentCode     pgtype.Text        `json:"department_code"`
+	DepartmentName     pgtype.Text        `json:"department_name"`
+	JobTitleCode       pgtype.Text        `json:"job_title_code"`
+	JobTitleName       pgtype.Text        `json:"job_title_name"`
+	JobTitleGrade      pgtype.Text        `json:"job_title_grade"`
+	ManagerEmployeeNo  pgtype.Text        `json:"manager_employee_no"`
+	ManagerFirstName   pgtype.Text        `json:"manager_first_name"`
+	ManagerLastName    pgtype.Text        `json:"manager_last_name"`
+	ManagerDisplayName pgtype.Text        `json:"manager_display_name"`
+}
+
+func (q *Queries) GetEmployeeWithDetails(ctx context.Context, arg GetEmployeeWithDetailsParams) (GetEmployeeWithDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getEmployeeWithDetails, arg.TenantID, arg.ID)
+	var i GetEmployeeWithDetailsRow
+	err := row.Scan(
+		&i.ID,
+		&i.TenantID,
+		&i.EmployeeNo,
+		&i.FirstName,
+		&i.LastName,
+		&i.DisplayName,
+		&i.WorkEmail,
+		&i.Status,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.BusinessUnitID,
+		&i.DepartmentID,
+		&i.JobTitleID,
+		&i.ManagerID,
+		&i.BusinessUnitCode,
+		&i.BusinessUnitName,
+		&i.DepartmentCode,
+		&i.DepartmentName,
+		&i.JobTitleCode,
+		&i.JobTitleName,
+		&i.JobTitleGrade,
+		&i.ManagerEmployeeNo,
+		&i.ManagerFirstName,
+		&i.ManagerLastName,
+		&i.ManagerDisplayName,
+	)
+	return i, err
+}
+
 const getJobTitle = `-- name: GetJobTitle :one
 SELECT id, tenant_id, code, name, grade, is_active, created_at, updated_at FROM job_titles WHERE tenant_id = $1 AND id = $2 LIMIT 1
 `
@@ -1148,6 +1252,142 @@ func (q *Queries) ListEmployees(ctx context.Context, arg ListEmployeesParams) ([
 			&i.DepartmentID,
 			&i.JobTitleID,
 			&i.ManagerID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEmployeesWithDetails = `-- name: ListEmployeesWithDetails :many
+SELECT
+    e.id,
+    e.tenant_id,
+    e.employee_no,
+    e.first_name,
+    e.last_name,
+    e.display_name,
+    e.work_email,
+    e.status,
+    e.is_active,
+    e.created_at,
+    e.updated_at,
+    e.business_unit_id,
+    e.department_id,
+    e.job_title_id,
+    e.manager_id,
+    bu.code AS business_unit_code,
+    bu.name AS business_unit_name,
+    d.code AS department_code,
+    d.name AS department_name,
+    jt.code AS job_title_code,
+    jt.name AS job_title_name,
+    jt.grade AS job_title_grade,
+    m.employee_no AS manager_employee_no,
+    m.first_name AS manager_first_name,
+    m.last_name AS manager_last_name,
+    m.display_name AS manager_display_name
+FROM employees e
+LEFT JOIN business_units bu ON e.business_unit_id = bu.id AND e.tenant_id = bu.tenant_id
+LEFT JOIN departments d ON e.department_id = d.id AND e.tenant_id = d.tenant_id
+LEFT JOIN job_titles jt ON e.job_title_id = jt.id AND e.tenant_id = jt.tenant_id
+LEFT JOIN employees m ON e.manager_id = m.id AND e.tenant_id = m.tenant_id
+WHERE
+    e.tenant_id = $1
+    AND (
+        $2::text = ''
+        OR e.first_name ILIKE '%' || $2::text || '%'
+        OR e.last_name ILIKE '%' || $2::text || '%'
+        OR e.display_name ILIKE '%' || $2::text || '%'
+        OR e.work_email ILIKE '%' || $2::text || '%'
+    )
+ORDER BY e.last_name, e.first_name
+LIMIT $4
+OFFSET
+    $3
+`
+
+type ListEmployeesWithDetailsParams struct {
+	TenantID pgtype.UUID `json:"tenant_id"`
+	Search   string      `json:"search"`
+	Offset   int32       `json:"offset"`
+	Limit    int32       `json:"limit"`
+}
+
+type ListEmployeesWithDetailsRow struct {
+	ID                 pgtype.UUID        `json:"id"`
+	TenantID           pgtype.UUID        `json:"tenant_id"`
+	EmployeeNo         string             `json:"employee_no"`
+	FirstName          string             `json:"first_name"`
+	LastName           string             `json:"last_name"`
+	DisplayName        pgtype.Text        `json:"display_name"`
+	WorkEmail          pgtype.Text        `json:"work_email"`
+	Status             string             `json:"status"`
+	IsActive           bool               `json:"is_active"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	BusinessUnitID     pgtype.UUID        `json:"business_unit_id"`
+	DepartmentID       pgtype.UUID        `json:"department_id"`
+	JobTitleID         pgtype.UUID        `json:"job_title_id"`
+	ManagerID          pgtype.UUID        `json:"manager_id"`
+	BusinessUnitCode   pgtype.Text        `json:"business_unit_code"`
+	BusinessUnitName   pgtype.Text        `json:"business_unit_name"`
+	DepartmentCode     pgtype.Text        `json:"department_code"`
+	DepartmentName     pgtype.Text        `json:"department_name"`
+	JobTitleCode       pgtype.Text        `json:"job_title_code"`
+	JobTitleName       pgtype.Text        `json:"job_title_name"`
+	JobTitleGrade      pgtype.Text        `json:"job_title_grade"`
+	ManagerEmployeeNo  pgtype.Text        `json:"manager_employee_no"`
+	ManagerFirstName   pgtype.Text        `json:"manager_first_name"`
+	ManagerLastName    pgtype.Text        `json:"manager_last_name"`
+	ManagerDisplayName pgtype.Text        `json:"manager_display_name"`
+}
+
+func (q *Queries) ListEmployeesWithDetails(ctx context.Context, arg ListEmployeesWithDetailsParams) ([]ListEmployeesWithDetailsRow, error) {
+	rows, err := q.db.Query(ctx, listEmployeesWithDetails,
+		arg.TenantID,
+		arg.Search,
+		arg.Offset,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListEmployeesWithDetailsRow
+	for rows.Next() {
+		var i ListEmployeesWithDetailsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TenantID,
+			&i.EmployeeNo,
+			&i.FirstName,
+			&i.LastName,
+			&i.DisplayName,
+			&i.WorkEmail,
+			&i.Status,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.BusinessUnitID,
+			&i.DepartmentID,
+			&i.JobTitleID,
+			&i.ManagerID,
+			&i.BusinessUnitCode,
+			&i.BusinessUnitName,
+			&i.DepartmentCode,
+			&i.DepartmentName,
+			&i.JobTitleCode,
+			&i.JobTitleName,
+			&i.JobTitleGrade,
+			&i.ManagerEmployeeNo,
+			&i.ManagerFirstName,
+			&i.ManagerLastName,
+			&i.ManagerDisplayName,
 		); err != nil {
 			return nil, err
 		}
