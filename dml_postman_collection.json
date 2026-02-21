@@ -232,7 +232,15 @@
 										{"key": "search", "value": "", "disabled": true}
 									]
 								}
-							}
+							},
+							"response": [
+								{
+									"name": "Example Response",
+									"status": "OK",
+									"code": 200,
+									"body": "{\n  \"data\": [\n    {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"tenantId\": \"550e8400-e29b-41d4-a716-446655440001\",\n      \"employeeNo\": \"UK-001\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"displayName\": \"John Doe\",\n      \"workEmail\": \"john.doe@inova.krd\",\n      \"status\": \"active\",\n      \"isActive\": true,\n      \"createdAt\": \"2024-01-15T10:30:00Z\",\n      \"updatedAt\": \"2024-01-15T10:30:00Z\",\n      \"businessUnit\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n        \"code\": \"BU-001\",\n        \"name\": \"Engineering\"\n      },\n      \"department\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n        \"code\": \"DEP-001\",\n        \"name\": \"Software Development\"\n      },\n      \"jobTitle\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n        \"code\": \"SWE-002\",\n        \"name\": \"Senior Software Engineer\",\n        \"grade\": \"GR-6\"\n      },\n      \"manager\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n        \"employeeNo\": \"UK-000\",\n        \"firstName\": \"Jane\",\n        \"lastName\": \"Smith\",\n        \"displayName\": \"Jane Smith\"\n      }\n    }\n  ],\n  \"metadata\": {\n    \"currentPage\": 1,\n    \"pageSize\": 20,\n    \"totalCount\": 1,\n    \"totalPages\": 1\n  }\n}"
+								}
+							]
 						},
 						{
 							"name": "2. GET Search Employees",
@@ -259,7 +267,15 @@
 									"host": ["{{baseUrl}}"],
 									"path": ["api", "v1", "employees", "{{employee_id}}"]
 								}
-							}
+							},
+							"response": [
+								{
+									"name": "Example Response",
+									"status": "OK",
+									"code": 200,
+									"body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"tenantId\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"employeeNo\": \"UK-001\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"displayName\": \"John Doe\",\n  \"workEmail\": \"john.doe@inova.krd\",\n  \"status\": \"active\",\n  \"isActive\": true,\n  \"createdAt\": \"2024-01-15T10:30:00Z\",\n  \"updatedAt\": \"2024-01-15T10:30:00Z\",\n  \"businessUnit\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"code\": \"BU-001\",\n    \"name\": \"Engineering\"\n  },\n  \"department\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n    \"code\": \"DEP-001\",\n    \"name\": \"Software Development\"\n  },\n  \"jobTitle\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n    \"code\": \"SWE-002\",\n    \"name\": \"Senior Software Engineer\",\n    \"grade\": \"GR-6\"\n  },\n  \"manager\": {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n    \"employeeNo\": \"UK-000\",\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"displayName\": \"Jane Smith\"\n  }\n}"
+								}
+							]
 						},
 						{
 							"name": "4. GET Employee Hierarchy",
