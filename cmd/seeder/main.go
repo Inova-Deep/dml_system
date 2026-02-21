@@ -94,24 +94,39 @@ func main() {
 	roleSvc := iam.NewRoleService(database, auditSvc)
 	onboardSvc := hr.NewOnboardingService(database, auditSvc)
 
-	// --- 1. Tenants (Fetch Existing) ---
+	// --- 1. Tenants & System Account (Get or Create) ---
 	var tenant1ID, sysUserUUID pgtype.UUID
+
+	// Check if tenant exists
 	err = database.Pool.QueryRow(ctx, "SELECT id FROM tenants WHERE code = 'TEN-UK-001'").Scan(&tenant1ID)
 	if err != nil {
-		log.Fatalf("Fatal: Could not find existing Tenant 'TEN-UK-001': %v", err)
+		log.Println(">> Tenant 'TEN-UK-001' not found. Initializing from scratch...")
+		tenantSvc := tenancy.NewService(database)
+		tempSysUUID := parseUUID(uuid.New().String())
+		t1, err := tenantSvc.CreateTenant(ctx, tempSysUUID, "TEN-UK-001", "Nova Systems UK Ltd")
+		if err != nil {
+			log.Fatalf("Fatal: Failed to create base tenant: %v", err)
+		}
+		tenant1ID = t1.ID
+
+		// Create secondary isolation tenant
+		_, _ = tenantSvc.CreateTenant(ctx, tempSysUUID, "TEN-UK-002", "Nova Consulting Services UK")
 	}
+
+	// Check if system user exists
 	err = database.Pool.QueryRow(ctx, "SELECT id FROM users WHERE email = 'system@inova.krd' OR email = 'system@nova.local'").Scan(&sysUserUUID)
 	if err != nil {
-		log.Fatalf("Fatal: Could not find existing System account: %v", err)
+		log.Println(">> System account not found. Initializing...")
+		sysUserUUID = parseUUID(uuid.New().String())
+		// We'll insert it later inside the Business Unit block as per original script flow
 	}
 
 	// Wrapper to fix downstream code
 	type mockEntity struct{ ID pgtype.UUID }
 	tenant1 := mockEntity{ID: tenant1ID}
-	tenant2 := mockEntity{ID: parseUUID(uuid.New().String())} // Dummy for compiler
+	tenant2 := mockEntity{ID: parseUUID(uuid.New().String())} // Placeholder for compiler
 
-	log.Printf(">> Found Primary Tenant: %s", uuid.UUID(tenant1.ID.Bytes).String())
-	log.Printf(">> Created Secondary Tenant (Isolation Test): %s", uuid.UUID(tenant2.ID.Bytes).String())
+	log.Printf(">> Using Primary Tenant: %s", uuid.UUID(tenant1.ID.Bytes).String())
 
 	// --- 3. Business Units ---
 	buLondon, _ := orgSvc.CreateBusinessUnit(ctx, parseUUID(uuid.New().String()), tenant1.ID, "LON-HQ", "London Headquarters")
