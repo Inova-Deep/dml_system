@@ -9,7 +9,9 @@ services:
       - "${API_PORT:-8081}:${API_PORT:-8081}"
     environment:
       - API_PORT=${API_PORT:-8081}
-      - DB_DSN=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-dml_db}?sslmode=disable
+      - DB_DSN=${DB_DSN}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
     depends_on:
       migrate:
         condition: service_completed_successfully
